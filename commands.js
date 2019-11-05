@@ -8,7 +8,7 @@ program.version("1.0.0").description("Local Reading List");
 program
   .command("search ['<title>']")
   .alias("s")
-  .description("Search for a book")
+  .description("Searches for a book. Can use multiple words to search in between the ('')")
   .action(title => {
     searchBook(title).then(res => {
       //console.info(res);
@@ -57,7 +57,7 @@ program
 program
   .command("remove <_id>")
   .alias("r")
-  .description("Removes book from the reading list")
+  .description("Removes book from the reading list. Requires _id from reading list entry")
   .action(_id => removeBook(_id));
 
 program.parse(process.argv);
