@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const axios = require("axios");
+require("dotenv").config();
 
 //Map local promises
 mongoose.Promise = global.Promise;
@@ -9,9 +10,6 @@ const db = mongoose.connect("mongodb://localhost:27017/readingListCLI", {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
-
-//Sets api key as a variable
-const keys = require("./config/keys");
 
 //Closes Connection to MongoDB
 const terminate = () => {
@@ -24,8 +22,6 @@ const ReadingList = require("./models/readingList");
 //Search for book to add to Reading List
 const searchBook = async function(book) {
   console.info(`Searching for: ${book}`);
-  //Empty array variable
-  let searchResults = [];
 
   //Using axios to make the query to the Google API
   const googleResponse = await axios.get(
@@ -34,53 +30,67 @@ const searchBook = async function(book) {
       //set paramaters for the query
       params: {
         q: book,
-        key: keys.googleAPIKey,
+        key: process.env.GOOGLE_API_KEY,
         maxResults: 10
       }
     }
   );
+  return responseHandler(googleResponse);
+};
 
-  //cleans response data from google API query
-  const resHandler = res => {
-    //console.info(res.data.items);
-    let resArray = res.data.items;
+//cleans response data from google API query
+const responseHandler = res => {
+  //console.info(res.data.items);
+  let responseArray = res.data.items;
+  //Empty array variable
+  let searchResults = [];
+  //loop through results and clean it up for user display and prep for DB
+  for (let i = 0; i < 5; i++) {
+    let authors = "";
+    const bookInfo = responseArray[i].volumeInfo;
+    const title = bookInfo.title;
+    //Makes sure publisher doesn't come back as undefined
+    const publisher =
+      bookInfo.publisher === undefined ? "None Listed" : bookInfo.publisher;
 
-    //loop through results and clean it up for user display and prep for DB
-    for (let i = 0; i < 5; i++) {
-      let authors = "";
-      const bookInfo = resArray[i].volumeInfo;
-      const title = bookInfo.title;
-      //Makes sure publisher doesn't come back as undefined
-      const publisher =
-        bookInfo.publisher === undefined ? "None Listed" : bookInfo.publisher;
-
-      //If statements used to change authors array into a string of authors
-      //None listed if undefined or blank
-      if (bookInfo.authors === undefined || bookInfo.authors[i] === "") {
-        authors = "None Listed";
-      } else if (bookInfo.authors.length === 1) {
-        authors = bookInfo.authors[0];
-      } else {
-        //A list of authors will be converted into a string of authors '<author1>, <author2>...'
-        authors = bookInfo.authors[0];
-        for (let a = 1; a < bookInfo.authors.length; a++) {
-          authors = authors + `, ${bookInfo.authors[a]}`;
-        }
+    //If statements used to change authors array into a string of authors
+    //None listed if undefined or blank
+    if (bookInfo.authors === undefined || bookInfo.authors[i] === "") {
+      authors = "None Listed";
+    } else if (bookInfo.authors.length === 1) {
+      authors = bookInfo.authors[0];
+    } else {
+      //A list of authors will be converted into a string of authors '<author1>, <author2>...'
+      authors = bookInfo.authors[0];
+      for (let a = 1; a < bookInfo.authors.length; a++) {
+        authors = authors + `, ${bookInfo.authors[a]}`;
       }
-      //loop through API query results to return only important information
-      searchResults[i] = {
-        title: title,
-        author: authors,
-        publishingcompany: publisher,
-        name: `${title} by ${authors}, published by ${publisher}`
-      };
     }
-    //console.info(searchResults);
-    //returned cleaned up result array
-    return searchResults;
-  };
-  //return
-  return resHandler(googleResponse);
+    //loop through API query results to return only important information
+    searchResults[i] = {
+      title: title,
+      author: authors,
+      publishingcompany: publisher,
+      name: `${title} by ${authors}, published by ${publisher}`
+    };
+  }
+  //console.info(searchResults);
+  //returned cleaned up result array
+  return searchResults;
+};
+
+const concatArrToStr = arr => {
+  let str = "";
+  if (arr === undefined || arr[0] === "") {
+    return (str = "No authors listed");
+  }
+  str = arr[0];
+  if (arr.length > 1) {
+    arr.forEach(author => {
+      str = `${str}, ${author}`;
+    });
+  }
+  return str;
 };
 
 //Add book to the reading list
@@ -123,4 +133,4 @@ const fullList = () => {
   });
 };
 
-module.exports = { searchBook, addBook, fullList, removeBook };
+module.exports = { searchBook, addBook, fullList, removeBook, concatArrToStr };
