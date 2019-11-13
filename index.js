@@ -31,7 +31,7 @@ const searchBook = async function(book) {
       params: {
         q: book,
         key: process.env.GOOGLE_API_KEY,
-        maxResults: 10
+        maxResults: 5
       }
     }
   );
@@ -45,27 +45,12 @@ const responseHandler = res => {
   //Empty array variable
   let searchResults = [];
   //loop through results and clean it up for user display and prep for DB
-  for (let i = 0; i < 5; i++) {
-    let authors = "";
+  for (let i = 0; i < responseArray.length; i++) {
     const bookInfo = responseArray[i].volumeInfo;
     const title = bookInfo.title;
-    //Makes sure publisher doesn't come back as undefined
-    const publisher =
-      bookInfo.publisher === undefined ? "None Listed" : bookInfo.publisher;
+    const authors = concatArrToStr(bookInfo.authors);
+    const publisher = concatArrToStr(bookInfo.publisher);
 
-    //If statements used to change authors array into a string of authors
-    //None listed if undefined or blank
-    if (bookInfo.authors === undefined || bookInfo.authors[i] === "") {
-      authors = "None Listed";
-    } else if (bookInfo.authors.length === 1) {
-      authors = bookInfo.authors[0];
-    } else {
-      //A list of authors will be converted into a string of authors '<author1>, <author2>...'
-      authors = bookInfo.authors[0];
-      for (let a = 1; a < bookInfo.authors.length; a++) {
-        authors = authors + `, ${bookInfo.authors[a]}`;
-      }
-    }
     //loop through API query results to return only important information
     searchResults[i] = {
       title: title,
@@ -74,21 +59,18 @@ const responseHandler = res => {
       name: `${title} by ${authors}, published by ${publisher}`
     };
   }
-  //console.info(searchResults);
+
   //returned cleaned up result array
   return searchResults;
 };
 
 const concatArrToStr = arr => {
   let str = "";
-  if (arr === undefined || arr[0] === "") {
-    return (str = "No authors listed");
+  if (arr === undefined || arr[0] === "" || arr[0] === undefined) {
+    return (str = "N/A");
   }
-  str = arr[0];
-  if (arr.length > 1) {
-    arr.forEach(author => {
-      str = `${str}, ${author}`;
-    });
+  for (let i = 0; i < arr.length; i++) {
+    i === 0 ? (str = arr[0]) : (str = `${str}, ${arr[i]}`);
   }
   return str;
 };
@@ -133,4 +115,11 @@ const fullList = () => {
   });
 };
 
-module.exports = { searchBook, addBook, fullList, removeBook, concatArrToStr };
+module.exports = {
+  searchBook,
+  addBook,
+  fullList,
+  removeBook,
+  concatArrToStr,
+  responseHandler
+};
