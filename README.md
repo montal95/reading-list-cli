@@ -2,7 +2,7 @@
 
 ### Developed by Samuel Montalvo Jr
 
-Command Line Interface that uses the Google Books API, MongoDB and Node.js to create a localized reading list
+Command Line Interface that uses the Google Books API, NeDB and Node.js to create a localized reading list.
 
 ## Setup and instructions
 
@@ -12,7 +12,7 @@ Command Line Interface that uses the Google Books API, MongoDB and Node.js to cr
 4. Change directories to the reading-list-cli folder by entering `cd reading-list-cli` in the terminal
 5. Run `npm install` in the terminal
 6. After installation is complete run `npm link`
-7. **Important:** Run `reading-list-cli key <API_KEY>` with the API key from step 2. This should create a .env file on your local directory. *Ignoring this step will prevent you from using the search command.*
+7. **Important:** Run `reading-list-cli key <API_KEY>` with the API key from step 2. This should create a .env file on your local directory. _Ignoring this step will prevent you from using the search command._
 8. Enter `reading-list-cli --help` for a list of commands, with examples on how to input each user action.
 9. When finished, enter `npm unlink` in the reading-list-cli directory in the terminal
 
