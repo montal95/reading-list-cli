@@ -7,32 +7,36 @@ Command Line Interface that uses the Google Books API, MongoDB and Node.js to cr
 ## Setup and instructions
 
 1. Update to the latest version of Node and NPM. Do this by running `npm install npm -g` in the terminal
-2. Update MongoDB via the terminal with `brew upgrade mongodb`
-3. Obtain an api key to access the Google Books API. Go here to request the appropriate key: https://console.developers.google.com
-4. Clone the repo to your computer
-5. In the terminal run `mongod` to run mongoDB on a local port.
-6. In a seperate terminal, change directories to the reading-list-cli folder and run `npm install`
-7. Input your API key in the index.js file and replace `keys.googleAPIKey` on line 37 for your own key.
-8. After installation is complete run `npm link`
-9. Enter `reading-list-cli --help` for a list of commands, with examples on how to input each user action.
-10. When finished, enter `npm unlink` in the reading-list-cli terminal and ctrl+C the terminal that ran `mongod`
+2. Obtain an api key to access the Google Books API. Go here to request the appropriate key: https://console.developers.google.com
+3. Clone the repo to your computer by entering `git clone https://github.com/montal95/reading-list-cli.git` into the terminal
+4. Change directories to the reading-list-cli folder by entering `cd reading-list-cli` in the terminal
+5. Run `npm install` in the terminal
+6. After installation is complete run `npm link`
+7. **Important:** Run `reading-list-cli key <API_KEY>` with the API key from step 2. This should create a .env file on your local directory. *Ignoring this step will prevent you from using the search command.*
+8. Enter `reading-list-cli --help` for a list of commands, with examples on how to input each user action.
+9. When finished, enter `npm unlink` in the reading-list-cli directory in the terminal
 
 #### Technologies used:
 
 - Node.js
 - Inquirer
 - Commander
-- MongoDB/Mongoose
+- NeDB
 - Axios
 - Google Books API
+- dotenv
 
 ### CLI Command Listings
+
 Options:
--   `-V`, `--version`:        output the version number
--   `-h`, `--help`:             output usage information
+
+- `-V`, `--version`: output the version number
+- `-h`, `--help`: output usage information
 
 Commands:
--  `search|s ['<title>']`:  Searches for a book. Can use multiple words to search in 
-                        between the (' ')
--  `list|l`:             Displays the entire reading List
--  `remove|r <_id>`:       Removes book from the reading list. Requires _id from reading list entry
+
+- `key|k <key>`: Saves the API Key to search books for the reading list
+- `search|s ['<title>']`: Searches for a book. Can use multiple words to search in
+  between the (' ')
+- `list|l`: Displays the entire reading List
+- `remove|r <_id>`: Removes book from the reading list. Requires \_id from reading list entry

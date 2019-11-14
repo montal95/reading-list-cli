@@ -1,9 +1,23 @@
 #!/usr/bin/env node
 const program = require("commander");
 const { prompt } = require("inquirer");
-const { searchBook, addBook, fullList, removeBook } = require("./index");
+const {
+  searchBook,
+  addBook,
+  fullList,
+  removeBook,
+  createEnv
+} = require("./index");
 
 program.version("1.0.0").description("Local Reading List");
+
+program
+  .command("key <key>")
+  .alias("k")
+  .description("Saves the API Key to search books for the reading list")
+  .action(key => {
+    createEnv(key);
+  });
 
 program
   .command("search ['<title>']")
@@ -47,8 +61,8 @@ program
             addBook(res[4]);
             break;
           case "Cancel":
-            console.info(`No book info saved.`)
-            addBook('Cancel');
+            console.info(`No book info saved.`);
+            addBook("Cancel");
             break;
           default:
             console.info("Oops! No match found");

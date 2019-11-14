@@ -1,24 +1,17 @@
-const mongoose = require("mongoose");
 const Datastore = require("nedb");
 const axios = require("axios");
 require("dotenv").config();
+const fs = require("fs");
+const ReadingList = new Datastore({ filename: "./db/readingList.db" });
+ReadingList.loadDatabase();
 
-//Map local promises
-mongoose.Promise = global.Promise;
-
-//Connect to DB
-const db = mongoose.connect("mongodb://localhost:27017/readingListCLI", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
-
-//Closes Connection to MongoDB
-const terminate = () => {
-  mongoose.connection.close();
+const createEnv = keyInfo => {
+  const envData = `GOOGLE_API_KEY="${keyInfo}"`;
+  fs.writeFile(".env", envData, err => {
+    if (err) throw err;
+    console.info("API key saved!");
+  });
 };
-
-//Import MongoDB Model
-const ReadingList = require("./models/readingList");
 
 //Search for book to add to Reading List
 const searchBook = async function(book) {
@@ -40,10 +33,9 @@ const searchBook = async function(book) {
   } catch (err) {
     console.info(`API Error: ${err.message}`);
     console.info("Canceling all actions");
-    terminate();
+    //terminate();
     return;
   }
-
   return responseHandler(googleResponse);
 };
 
@@ -90,44 +82,30 @@ const concatArrToStr = arr => {
 //Add book to the reading list
 const addBook = book => {
   if (book === "Cancel") {
-    terminate();
     return;
   }
-  ReadingList.create(book)
-    .then(book => {
-      console.info("New Book Added to Reading List:");
-      console.info(book);
-      //close DB after adding new book entry
-      terminate();
-    })
-    .catch(err => {
-      console.info(err);
-      terminate();
-    });
+
+  ReadingList.insert(book, (err, doc) => {
+    if (err) throw err;
+    console.info("New Book Added to Reading List:");
+    console.info(doc);
+  });
 };
 
 //Delete book from reading list
 const removeBook = _id => {
-  ReadingList.deleteOne({ _id }).then(book => {
-    console.info("Book removed from reading list");
-    terminate();
+  const idToRemove = { _id: `${_id}` };
+  ReadingList.remove(idToRemove, (err, numRemoved) => {
+    if (err) throw err;
+    console.info(`${numRemoved} book removed from reading list`);
   });
 };
 
 //Full reading list
 const fullList = () => {
-  ReadingList.find().then(books => {
-    //prints list of books
-    books.forEach(book => {
-      console.info(book);
-    });
-    //Shows how many matches are found...with proper grammar
-    const matches =
-      books.length === 1
-        ? `${books.length} match found`
-        : `${books.length} matches found`;
-    console.info(matches);
-    terminate();
+  ReadingList.find({}, (err, docs) => {
+    if (err) throw err;
+    console.info(docs);
   });
 };
 
@@ -137,5 +115,6 @@ module.exports = {
   fullList,
   removeBook,
   concatArrToStr,
-  responseHandler
+  responseHandler,
+  createEnv
 };
