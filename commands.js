@@ -8,10 +8,15 @@ program.version("1.0.0").description("Local Reading List");
 program
   .command("search ['<title>']")
   .alias("s")
-  .description("Searches for a book. Can use multiple words to search in between the ('')")
+  .description(
+    "Searches for a book. Can use multiple words to search in between the ('')"
+  )
   .action(title => {
     searchBook(title).then(res => {
-      //console.info(res);
+      if (res === undefined) {
+        return;
+      }
+      res.push({ name: "Cancel" });
       const question = {
         type: "list",
         choices: res,
@@ -41,6 +46,10 @@ program
             console.info(`Saving: ${res[4].name}`);
             addBook(res[4]);
             break;
+          case "Cancel":
+            console.info(`No book info saved.`)
+            addBook('Cancel');
+            break;
           default:
             console.info("Oops! No match found");
         }
@@ -57,7 +66,9 @@ program
 program
   .command("remove <_id>")
   .alias("r")
-  .description("Removes book from the reading list. Requires _id from reading list entry")
+  .description(
+    "Removes book from the reading list. Requires _id from reading list entry"
+  )
   .action(_id => removeBook(_id));
 
 program.parse(process.argv);

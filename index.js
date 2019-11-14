@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Datastore = require("nedb");
 const axios = require("axios");
 require("dotenv").config();
 
@@ -22,19 +23,27 @@ const ReadingList = require("./models/readingList");
 //Search for book to add to Reading List
 const searchBook = async function(book) {
   console.info(`Searching for: ${book}`);
-
+  let googleResponse;
   //Using axios to make the query to the Google API
-  const googleResponse = await axios.get(
-    "https://www.googleapis.com/books/v1/volumes",
-    {
-      //set paramaters for the query
-      params: {
-        q: book,
-        key: process.env.GOOGLE_API_KEY,
-        maxResults: 5
+  try {
+    googleResponse = await axios.get(
+      "https://www.googleapis.com/books/v1/volumes",
+      {
+        //set paramaters for the query
+        params: {
+          q: book,
+          key: process.env.GOOGLE_API_KEY,
+          maxResults: 5
+        }
       }
-    }
-  );
+    );
+  } catch (err) {
+    console.info(`API Error: ${err.message}`);
+    console.info("Canceling all actions");
+    terminate();
+    return;
+  }
+
   return responseHandler(googleResponse);
 };
 
@@ -49,7 +58,10 @@ const responseHandler = res => {
     const bookInfo = responseArray[i].volumeInfo;
     const title = bookInfo.title;
     const authors = concatArrToStr(bookInfo.authors);
-    const publisher = concatArrToStr(bookInfo.publisher);
+    const publisher =
+      bookInfo.publisher === "" || bookInfo.publisher === undefined
+        ? "N/A"
+        : bookInfo.publisher;
 
     //loop through API query results to return only important information
     searchResults[i] = {
@@ -77,6 +89,10 @@ const concatArrToStr = arr => {
 
 //Add book to the reading list
 const addBook = book => {
+  if (book === "Cancel") {
+    terminate();
+    return;
+  }
   ReadingList.create(book)
     .then(book => {
       console.info("New Book Added to Reading List:");
